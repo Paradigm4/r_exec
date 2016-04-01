@@ -19,6 +19,8 @@
 namespace scidb //not required
 {
 
+using namespace std; // -> SciDB 15.7
+
 class LogicalRExec : public LogicalOperator
 {
 public:
@@ -29,9 +31,9 @@ public:
         ADD_PARAM_VARIES()
     }
 
-    vector<shared_ptr<OperatorParamPlaceholder> > nextVaryParamPlaceholder(vector< ArrayDesc> const& schemas)
+    vector<std::shared_ptr<OperatorParamPlaceholder> > nextVaryParamPlaceholder(vector< ArrayDesc> const& schemas)
     {
-        vector<shared_ptr<OperatorParamPlaceholder> > res;
+        vector<std::shared_ptr<OperatorParamPlaceholder> > res;
         res.push_back(END_OF_VARIES_PARAMS());
         if (_parameters.size() < RExecSettings::MAX_PARAMETERS)
         {
@@ -62,7 +64,7 @@ public:
         }
     }
 
-    ArrayDesc inferSchema(vector< ArrayDesc> schemas, shared_ptr< Query> query)
+    ArrayDesc inferSchema(vector< ArrayDesc> schemas, std::shared_ptr< Query> query)
     {
         ArrayDesc const& inputSchema = schemas[0];
         checkInputAttributes(inputSchema);
@@ -76,9 +78,9 @@ public:
         }
         outputAttributes = addEmptyTagAttribute(outputAttributes);
         Dimensions outputDimensions;
-        outputDimensions.push_back(DimensionDesc("inst", 0, query->getInstancesCount()-1, 1, 0));
-        outputDimensions.push_back(DimensionDesc("n",    0, MAX_COORDINATE, settings.outputChunkSize(), 0));
-        return ArrayDesc(inputSchema.getName(), outputAttributes, outputDimensions);
+        outputDimensions.push_back(DimensionDesc("inst", 0, query->getInstancesCount()-1, 1, 0)); 
+		outputDimensions.push_back(DimensionDesc("n",    0, CoordinateBounds::getMax(), settings.outputChunkSize(), 0)); // -> SciDB 15.7
+		return ArrayDesc(inputSchema.getName(), outputAttributes, outputDimensions,defaultPartitioning()); // -> SciDB 15.7
     }
 };
 

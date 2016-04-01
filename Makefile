@@ -41,7 +41,7 @@ endif
 OPTIMIZED=-O2 -DNDEBUG
 DEBUG=-g -ggdb3
 CFLAGS = -pedantic -W -Wextra -Wall -Wno-variadic-macros -Wno-strict-aliasing \
-         -Wno-long-long -Wno-unused-parameter -fPIC $(OPTIMIZED) 
+         -Wno-long-long -Wno-unused-parameter -fPIC $(OPTIMIZED) -std=c++11
 INC = -I. -DPROJECT_ROOT="\"$(SCIDB)\"" -I"$(SCIDB_3RDPARTY)/boost/include/" \
       -I"$(SCIDB)/include" -I./extern
 

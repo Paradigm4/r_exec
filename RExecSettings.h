@@ -37,6 +37,8 @@
 namespace scidb
 {
 
+using namespace std; // -> SciDB 15.7
+using namespace boost;
 /**
  * Very simple; has only one optional output parameter - the output chunk size.
  */
@@ -72,9 +74,9 @@ public:
         return sval;
     }
 
-    RExecSettings(vector<shared_ptr<OperatorParam> > const& operatorParameters,
+    RExecSettings(vector<std::shared_ptr<OperatorParam> > const& operatorParameters,
                  bool logical,
-                 shared_ptr<Query>& query):
+                 std::shared_ptr<Query>& query):
        _outputChunkSize(1000000),
        _rExpression(""),
        _nOutputAttrs(1)
@@ -89,15 +91,15 @@ public:
         }
         for (size_t i= 0; i<nParams; ++i)
         {
-            shared_ptr<OperatorParam>const& param = operatorParameters[i];
+            std::shared_ptr<OperatorParam>const& param = operatorParameters[i];
             string parameterString;
             if (logical)
             {
-                parameterString = evaluate(((shared_ptr<OperatorParamLogicalExpression>&) param)->getExpression(),query, TID_STRING).getString();
+                parameterString = evaluate(((std::shared_ptr<OperatorParamLogicalExpression>&) param)->getExpression(),query, TID_STRING).getString();
             }
             else
             {
-                parameterString = ((shared_ptr<OperatorParamPhysicalExpression>&) param)->getExpression()->evaluate().getString();
+                parameterString = ((std::shared_ptr<OperatorParamPhysicalExpression>&) param)->getExpression()->evaluate().getString();
             }
             if (starts_with(parameterString, chunkSizeParamHeader))
             {

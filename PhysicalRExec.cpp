@@ -29,6 +29,8 @@
 
 namespace scidb
 {
+	
+using namespace std; // -> SciDB 15.7
 
 // Logger for operator. static to prevent visibility of variable outside of file
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("scidb.qproc.rexec"));
@@ -46,16 +48,16 @@ public:
     class OutputWriter
     {
     private:
-        shared_ptr<Array> _output;
+        std::shared_ptr<Array> _output;
         Coordinates _outputChunkPosition;
         Coordinates _outputCellPosition;
         size_t _nAttrs;
-        vector< shared_ptr<ArrayIterator> > _outputArrayIterators;
-        vector< shared_ptr<ChunkIterator> > _outputChunkIterators;
+        vector< std::shared_ptr<ArrayIterator> > _outputArrayIterators;
+        vector< std::shared_ptr<ChunkIterator> > _outputChunkIterators;
         Value _dval;
 
     public:
-        OutputWriter(ArrayDesc const& schema, shared_ptr<Query>& query):
+        OutputWriter(ArrayDesc const& schema, std::shared_ptr<Query>& query):
             _output(new MemArray(schema, query)),
             _outputChunkPosition(2, -1),
             _outputCellPosition(2, 0),
@@ -71,7 +73,7 @@ public:
             }
         }
 
-        void writeTuple(vector <double> const& tuple, shared_ptr<Query>& query)
+        void writeTuple(vector <double> const& tuple, std::shared_ptr<Query>& query)
         {
             if (tuple.size() != _nAttrs)
             {
@@ -103,7 +105,7 @@ public:
             _outputCellPosition[1]++;
         }
 
-        shared_ptr<Array> finalize()
+        std::shared_ptr<Array> finalize()
         {
             for (size_t i=0; i<_nAttrs; ++i)
             {
@@ -123,16 +125,16 @@ public:
         return true;
     }
 
-    virtual ArrayDistribution getOutputDistribution(vector<ArrayDistribution> const& inputDistributions,
-                                                    vector<ArrayDesc> const& inputSchemas) const
+	virtual RedistributeContext getOutputDistribution(vector<RedistributeContext> const& inputDistributions,
+													vector<ArrayDesc> const& inputSchemas) const
     {
-       return ArrayDistribution(psUndefined);
+       return RedistributeContext(psUndefined);
     }
 
-    shared_ptr< Array> execute(vector< shared_ptr< Array> >& inputArrays, shared_ptr<Query> query)
+    std::shared_ptr< Array> execute(vector< std::shared_ptr< Array> >& inputArrays, std::shared_ptr<Query> query)
     {
         RExecSettings settings (_parameters, false, query);
-        shared_ptr<Rconnection> rc (new Rconnection());
+        std::shared_ptr<Rconnection> rc (new Rconnection());
         int i=rc->connect();
         if (i)
         {
@@ -143,13 +145,13 @@ public:
         {
           throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION)<<"could not connect to R";
         }
-        shared_ptr<Array> inputArray = inputArrays[0];
+        std::shared_ptr<Array> inputArray = inputArrays[0];
         ArrayDesc const& inputSchema = inputArray->getArrayDesc();
         AttributeID const nAttrs = inputSchema.getAttributes(true).size();
         AttributeID const nOutputAttrs = _schema.getAttributes(true).size();
         vector<string> attributeNames(nAttrs, "");
-        vector<shared_ptr<ConstArrayIterator> > saiters(nAttrs);
-        vector<shared_ptr<ConstChunkIterator> > sciters(nAttrs);
+        vector<std::shared_ptr<ConstArrayIterator> > saiters(nAttrs);
+        vector<std::shared_ptr<ConstChunkIterator> > sciters(nAttrs);
         for (AttributeID i = 0; i<nAttrs; ++i)
         {
             attributeNames[i] = inputSchema.getAttributes()[i].getName();
@@ -171,11 +173,11 @@ public:
                     }
                     ++(*sciters[i]);
                 }
-                shared_ptr<Rdouble> rInput(new Rdouble(&inputData[0], inputData.size()));
+                std::shared_ptr<Rdouble> rInput(new Rdouble(&inputData[0], inputData.size()));
                 rc->assign(attributeNames[i].c_str(), rInput.get());
             }
             /* Note that we assume output from R is always a list. */
-            shared_ptr<Rvector> rOutput((Rvector*) rc->eval(settings.rExpression().c_str()));
+            std::shared_ptr<Rvector> rOutput((Rvector*) rc->eval(settings.rExpression().c_str()));
             if (!rOutput)
             {
                 throw SYSTEM_EXCEPTION(SCIDB_SE_INTERNAL, SCIDB_LE_ILLEGAL_OPERATION) << "Did not receive output from R";
